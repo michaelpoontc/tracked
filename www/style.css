@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+body {
+  background-image: url('D:/ownCloud/COVID/webapp/www/usher.png')
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: top right;
+
+div {
+  line-height:1.6;
+}
+
+p {
+  font: 14px Arial, sans-serif;
+  line-height:1.6;
+}
+
+</style>
+</head>
+<body>
