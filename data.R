@@ -3,7 +3,9 @@ library(shiny)
 library(shinydashboard)
 library(shinydashboardPlus)
 library(DT)
+library(forcats)
 library(dplyr)
+library(tidyr)
 library(ggplot2)
 library(scales)
 library(readxl)
@@ -13,6 +15,9 @@ library(openxlsx)
 library(data.table)
 library(zoo)
 library(epitools)
+library(here)
+library(sf)
+library(patchwork)
 
 
 # Current week number ================================================================
@@ -25,7 +30,6 @@ previous3_week <- current_week - 3
 # Generating link name as it changes each week
 link <- paste0("https://www.nrscotland.gov.uk/files//statistics/covid19/covid-deaths-data-week-", previous_week)
 link <- paste0(link, ".xlsx")
-
 link2 <- paste0("https://www.nrscotland.gov.uk/files//statistics/covid19/covid-deaths-data-week-", previous2_week)
 link2 <- paste0(link2, ".xlsx")
 
@@ -58,12 +62,12 @@ try(download.file("https://www.nisra.gov.uk/sites/nisra.gov.uk/files/publication
 
 # Extracting data from xlsx =========================================================
 {if (file.exists("nrs2.xlsx")){
-  raw <- read.xlsx("nrs2.xlsx", sheet="Figure 6 data")
+  raw <- read.xlsx("nrs2.xlsx", sheet="Table 4 - Excess deaths")
   }
 }
 
 {if (file.exists("nrs1.xlsx")){
-  raw <- read.xlsx("nrs1.xlsx", sheet="Figure 6 data")
+  raw <- read.xlsx("nrs1.xlsx", sheet="Table 4 - Excess deaths")
   }
 }
 
@@ -99,8 +103,8 @@ nisra <- as.data.frame(nisra)
 
 ## Organising NRS data ============================================================
 raw <- as.data.frame(t(raw))
-names(raw) <- as.matrix(raw[1, ])
-raw <- raw[-1, ]
+names(raw) <- as.matrix(raw[2, ])
+raw <- raw[-c(1, 2), ]
 raw[] <- lapply(raw, function(x) type.convert(as.character(x)))
 raw <- raw[colSums(!is.na(raw)) > 0]
 
@@ -126,6 +130,33 @@ names(raw) <- c("week",
                 "difference_covid",
                 "difference_others",
                 "difference")
+
+# Removing columns of location of death statistics
+start_location_death <- which(colnames(raw)=="difference") + 1
+number_column <- ncol(raw)
+raw <- raw %>% select("week",
+                      "expected_cancer",
+                      "expected_dementia",
+                      "expected_cardiovascular",
+                      "expected_respiratory",
+                      "expected_others",
+                      "expected",
+                      "cancer",
+                      "dementia",
+                      "cardiovascular",
+                      "respiratory",
+                      "covid",
+                      "others",
+                      "total",
+                      "difference_cancer",
+                      "difference_dementia",
+                      "difference_cardiovascular",
+                      "difference_respiratory",
+                      "difference_covid",
+                      "difference_others",
+                      "difference")
+# Removing last row
+raw <- raw[-c(nrow(raw)), ]
 
 # Calculating difference in percentages
 raw$difference_cancer <- (raw$difference_cancer / raw$difference_cancer) * 100
@@ -348,7 +379,7 @@ colnames(y) <- paste("expected_wales", c("_x", "px", "_std", "_lb", "_ub", "_ci"
 ons <- cbind(ons, y[, 3:5])
 
 # Scotland
-x <- select(nrs, -contains("expected")) %>% select(-contains("difference"))
+x <- select(nrs, -contains("expected")) %>% select(-contains("difference")) %>% select(-contains("week"))
 for (i in colnames(x)) {
   y <- binom.approx(x[, i], population[3,2], conf.level = 0.95)
   y$proportion <- y$proportion * 100000
@@ -507,7 +538,7 @@ for (i in colnames(y)) {
 # NRS
 x <- select(nrs, -contains("expected")) %>%
   select(-contains("difference")) %>% select(-contains("std")) %>%
-  select(-contains("lb")) %>% select(-contains("ub"))
+  select(-contains("lb")) %>% select(-contains("ub")) %>% select(-contains("week"))
 y <- rollapply(x, 4, "mean", align="left", by.column=TRUE) %>% as.data.frame()
 for (i in colnames(y)) {
   z <- binom.approx(y[, i], population[3,2], conf.level = 0.95)
@@ -549,3 +580,4 @@ ons$week <- as.Date(paste(2020, (ons$week-1), 6, sep="-"), "%Y-%U-%u") - 1
 nisra$week <- as.Date(paste(2020, (nisra$week), 6, sep="-"), "%Y-%U-%u") -1
 
 max_week_range = as.Date(max(nrs$week))
+

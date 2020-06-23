@@ -8,7 +8,8 @@
 
 # Sourcing scripts ===============================================================
 source("data.R", local=TRUE)
-# source("spatial.R", local=TRUE)
+# source("previous_data.R", local=TRUE)
+# source("location.R", local=TRUE)
 
 # Start of shiny app UI codes ======================================================
 
@@ -41,6 +42,7 @@ ui <- dashboardPagePlus(
                          menuSubItem("Wales", tabName="wales"),
                          menuSubItem("Northern Ireland", tabName="ni")
                 ),
+                menuItem("Regional data", tabName = "regional", icon=icon("map")),
                 menuItem("Data info", tabName="info", icon=icon("database")),
                 menuItem("About authors", tabName="about", icon=icon("address-card")),
                 menuItem("Contact", tabName="contact", icon=icon("envelope-open"))
@@ -281,22 +283,39 @@ ui <- dashboardPagePlus(
               )
       ),
       
+      tabItem(tabName = "regional",
+              plotOutput("difference_plot")
+              ),
       tabItem(tabName = "info",
               fluidRow(
                 column(6, h1("Data information", style="padding:3px;")),
                 column(6, div(img(src="usher.png", height = 70, align="right")))
               ),
               p(br(),
+                em("Background"), ": We aimed to describe trends of excess mortality in the United Kingdom (UK) stratified by nation and cause of death, and to develop an online tool", 
+                                  " for reporting the most up to date data on excess mortality.",
+               em("Methods"), ": Population statistics agencies in the UK including the Office for National Statistics (ONS), National Records of Scotland (NRS), and Northern Ireland Statistics and Research Agency (NISRA)",
+                                "publish weekly data on deaths. We used mortality data up to 22nd May in the ONS and the NISRA and 24th May in the NRS.",
+                                " Crude mortality for non-COVID deaths (where there is no mention of COVID-19 on the death certificate) calculated.", 
+                                " Excess mortality defined as difference between observed mortality and expected average of mortality from previous 5 years.",
+                  em("Results"), ": There were 56,961 excess deaths and 8,986 were non-COVID excess deaths. England had the highest number of excess deaths per 100,000 population (85) and Northern Ireland the lowest (34).",
+                                  " Non-COVID mortality increased from 23rd March and returned to the 5-year average on 10th May. In Scotland, where underlying cause mortality data besides COVID-related deaths was available,",
+                                  " the percentage excess over the 8-week period when COVID-related mortality peaked was: dementia 49%, other causes 21%, circulatory diseases 10%, and cancer 5%.",
+                                  " We developed an online tool (TRACKing Excess Deaths - TRACKED) to allow dynamic exploration and visualisation of the latest mortality trends.",
+               em("Conclusions"), ":  Continuous monitoring of excess mortality trends and further integration of age- and gender-stratified and underlying cause of death data beyond COVID-19",
+                                  " will allow dynamic assessment of the impacts of indirect and direct mortality of the COVID-19 pandemic."),
+              p(br(),
                 "Our interpretation of the findings are available in our preprint."),
-              p(a("MedRxiv pre-print", href="")),
+              p(a("MedRxiv preprint", href="https://www.medrxiv.org/content/10.1101/2020.06.05.20121962v1", target="_blank")),
               p(br(),
                 "Source for this application can be viewed and downloaded from github."),
-              p(a("GitHub page", href="https://github.com/michaelpoontc/tracked")),
+              p(a("GitHub page", href="https://github.com/michaelpoontc/tracked", target="_blank")),
               p(br(),  
                 "Direct URLs of the data sources are available below:"),
-              p(a("Office for National Statistics (ONS)", href="https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/datasets/weeklyprovisionalfiguresondeathsregisteredinenglandandwales")),
-              p(a("National Records of Scotland (NRS)", href="https://www.nrscotland.gov.uk/covid19stats")),
-              p(a("Northern Ireland Statistics and Research Agency (NISRA)", href="https://www.nisra.gov.uk/publications/weekly-deaths"))
+              p(a("Office for National Statistics (ONS)", href="https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/datasets/weeklyprovisionalfiguresondeathsregisteredinenglandandwales", target="_blank")),
+              p(a("National Records of Scotland (NRS)", href="https://www.nrscotland.gov.uk/covid19stats", target="_blank")),
+              p(a("Northern Ireland Statistics and Research Agency (NISRA)", href="https://www.nisra.gov.uk/publications/weekly-deaths", target="_blank")),
+              p(strong("Please note that mortality data from ONS/ NRS/ NISRA are provisional and will likely change due to delays in registrations. Rates are crude and not standardised for age."))
       ),
       
       tabItem(tabName = "about",
@@ -310,22 +329,22 @@ ui <- dashboardPagePlus(
                           "The creators are a group of clinical and non-clinical academics, based at the University of Edinburgh and Health Data Research UK, ",
                           "with expertise in cancer and cardiovascular epidemiology, health informatics, and analysis of routine linked healthcare data.",
                           "Please read our ",
-                         a("MedRxiv preprint", href=""), "for more information.
+                         a("MedRxiv preprint", href="https://www.medrxiv.org/content/10.1101/2020.06.05.20121962v1", target="_blank"), "for more information.
                          The code supporting this app was written by Michael Poon, who maintains this website.",
                          br(),
                          br()),
                        box(title="Team members", status = "primary", solidHeader = T, width = 12,
-                             p(a("Dr Michael Poon", href="https://www.research.ed.ac.uk/portal/en/persons/michael-poon(1c64fb66-b332-44cf-bc0e-0ba4110b5ef4).html")),
-                             p(a("Dr Paul Brennan", href="https://www.ed.ac.uk/profile/dr-paul-brennan")),
-                             p(a("Dr Kai Jin", href="https://www.researchgate.net/profile/Kai_Jin13")),
-                             p(a("Dr Jonine Figueroa", href="https://www.research.ed.ac.uk/portal/en/persons/jonine-figueroa(af64d0a3-49c3-428d-9b71-b755ae531023).html")),
-                             p(a("Professor Cathie Sudlow", href="https://www.hdruk.org/people/cathie-sudlow/"))
+                             p(a("Dr Michael Poon", href="https://www.research.ed.ac.uk/portal/en/persons/michael-poon(1c64fb66-b332-44cf-bc0e-0ba4110b5ef4).html", target="_blank")),
+                             p(a("Dr Paul Brennan", href="https://www.ed.ac.uk/profile/dr-paul-brennan", target="_blank")),
+                             p(a("Dr Kai Jin", href="https://www.researchgate.net/profile/Kai_Jin13", target="_blank")),
+                             p(a("Dr Jonine Figueroa", href="https://www.research.ed.ac.uk/portal/en/persons/jonine-figueroa(af64d0a3-49c3-428d-9b71-b755ae531023).html", target="_blank")),
+                             p(a("Professor Cathie Sudlow", href="https://www.hdruk.org/people/cathie-sudlow/", target="_blank"))
                        )
                 ),
                 column(4, align="right",
                        p(
-                         a(img(src="twitter.png", height = 60), href="https://twitter.com/MchaelPoon"),
-                         a(img(src="github.png", height = 65), href="https://github.com/michaelpoontc/tracked")
+                         a(img(src="twitter.png", height = 60), href="https://twitter.com/MchaelPoon", target="_blank"),
+                         a(img(src="github.png", height = 65), href="https://github.com/michaelpoontc/tracked", target="_blank")
                        )
                 )
               )
@@ -334,7 +353,7 @@ ui <- dashboardPagePlus(
               tags$iframe(id = "googleform",
                           src = "https://docs.google.com/forms/d/e/1FAIpQLSerm53QaTMcRSzIuX_rQUe4o9iNk4JDjJaxyJLS9XCgAkUx5w/viewform?embedded=true",
                           width = 1000,
-                          height = 700,
+                          height = 800,
                           frameborder = 0,
                           marginheight = 0,
                           align = "center"))
@@ -1843,7 +1862,34 @@ server <- function(input, output) {
     
   }, bg="transparent")
 
-  
+  # # Regional graphical outputs ================================================
+  # output$difference_plot <- renderPlot ({
+  #     ggplot(uk) +
+  #       geom_line(aes(week, difference, colour=location), size=1) +
+  #       facet_wrap(~location, ncol=3) +
+  #       scale_y_continuous(name="% excess of non-COVID deaths", 
+  #                          minor_breaks=NULL) +
+  #       scale_x_date(name="Month in 2020",
+  #                    labels = date_format("%b"),
+  #                    breaks = "months",
+  #                    minor_breaks=NULL) +
+  #       theme(
+  #         panel.background = element_rect(fill="#f2f7fc", colour = "#002169",
+  #                                         size=1.5, linetype = "solid"),
+  #         plot.background = element_rect(fill = "transparent", colour = NA),
+  #         panel.border = element_rect(colour = "black", fill=NA, size=0.5),
+  #         panel.grid.major.y = element_line(size=0.25, linetype = "solid", colour="#c9dff5"),
+  #         panel.grid.major.x = element_blank(),
+  #         strip.background = element_rect(
+  #           color="#002169", fill="#002169", size=1.5, linetype="solid"
+  #         ),
+  #         strip.text.x = element_text(
+  #           size = 10, color = "white", face = "bold"
+  #         ),
+  #         legend.position="none"
+  #         )
+  # }, bg="transparent")
+  # 
 }
 
 # Run the application 
