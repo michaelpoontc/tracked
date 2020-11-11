@@ -4,6 +4,7 @@ library(shinydashboard)
 library(shinydashboardPlus)
 library(DT)
 library(forcats)
+library(plyr)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -16,7 +17,6 @@ library(data.table)
 library(zoo)
 library(epitools)
 library(here)
-library(sf)
 library(patchwork)
 
 
@@ -26,24 +26,25 @@ previous_week <- current_week - 1
 previous2_week <- current_week - 2
 previous3_week <- current_week - 3
 
+
 # Downloading file from NRS website ==================================================
 # Generating link name as it changes each week
-link <- paste0("https://www.nrscotland.gov.uk/files//statistics/covid19/covid-deaths-data-week-", previous_week)
+link <- paste0("https://www.nrscotland.gov.uk/files//statistics/covid19/covid-deaths-data-week-", "41")
 link <- paste0(link, ".xlsx")
-link2 <- paste0("https://www.nrscotland.gov.uk/files//statistics/covid19/covid-deaths-data-week-", previous2_week)
+link2 <- paste0("https://www.nrscotland.gov.uk/files//statistics/covid19/covid-deaths-data-week-", "41")
 link2 <- paste0(link2, ".xlsx")
 
 # Downloading file from ONS website =================================================
 # Generating link name
-link_ons <- paste0("https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/datasets/weeklyprovisionalfiguresondeathsregisteredinenglandandwales/2020/publishedweek",
+link_ons <- paste0("https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2020/publishedweek",
                    previous_week)
 link_ons <- paste0(link_ons, "2020.xlsx")
 
-link2_ons <- paste0("https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/datasets/weeklyprovisionalfiguresondeathsregisteredinenglandandwales/2020/publishedweek",
+link2_ons <- paste0("https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2020/publishedweek",
                     previous2_week)
 link2_ons <- paste0(link2_ons, "2020.xlsx")
 
-link3_ons <- paste0("https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/datasets/weeklyprovisionalfiguresondeathsregisteredinenglandandwales/2020/publishedweek",
+link3_ons <- paste0("https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2020/publishedweek",
                     previous3_week)
 link3_ons <- paste0(link3_ons, "2020.xlsx")
 
@@ -53,7 +54,7 @@ download.file(link2, "nrs2.xlsx", mode="wb")
 try(download.file(link, "nrs1.xlsx", mode="wb"))
 
 # Download ONS link
-download.file(link3_ons, "ons3.xlsx", mode="wb")
+try(download.file(link3_ons, "ons3.xlsx", mode="wb"))
 try(download.file(link2_ons, "ons2.xlsx", mode="wb"))
 try(download.file(link_ons, "ons1.xlsx", mode="wb"))
 
@@ -62,12 +63,12 @@ try(download.file("https://www.nisra.gov.uk/sites/nisra.gov.uk/files/publication
 
 # Extracting data from xlsx =========================================================
 {if (file.exists("nrs2.xlsx")){
-  raw <- read.xlsx("nrs2.xlsx", sheet="Table 4 - Excess deaths")
+  raw <- read.xlsx("nrs2.xlsx", sheet="Table 3 ")
   }
 }
 
 {if (file.exists("nrs1.xlsx")){
-  raw <- read.xlsx("nrs1.xlsx", sheet="Table 4 - Excess deaths")
+  raw <- read.xlsx("nrs1.xlsx", sheet="Table 3 ")
   }
 }
 
@@ -103,13 +104,14 @@ nisra <- as.data.frame(nisra)
 
 ## Organising NRS data ============================================================
 raw <- as.data.frame(t(raw))
-names(raw) <- as.matrix(raw[2, ])
+names(raw)[2:117] <- as.matrix(raw[2, ])[2:117]
 raw <- raw[-c(1, 2), ]
 raw[] <- lapply(raw, function(x) type.convert(as.character(x)))
 raw <- raw[colSums(!is.na(raw)) > 0]
+raw <- raw[colSums(!is.na(raw)) > 40]
 
 # Naming columns
-names(raw) <- c("week",
+names(raw)[1:21] <- c("week",
                 "expected_cancer",
                 "expected_dementia",
                 "expected_cardiovascular",
@@ -241,7 +243,7 @@ raw_ons <- as.data.frame(raw_ons)
 raw_ons <- raw_ons %>% filter(is.na(raw_ons[5])==FALSE)
 
 # Replacing column names and removing NA columns
-names(raw_ons) <- as.matrix(raw_ons[1, ])
+names(raw_ons)[1:11] <- as.matrix(raw_ons[1, ])[1:11]
 raw_ons <- raw_ons[-1, ]
 raw_ons[] <- lapply(raw_ons, function(x) type.convert(as.character(x)))
 raw_ons <- raw_ons[colSums(!is.na(raw_ons)) > 0]
@@ -267,7 +269,7 @@ covid_ons <- as.data.frame(covid_ons)
 covid_ons <- covid_ons %>% filter(is.na(covid_ons[5])==FALSE)
 
 # Replacing column names and removing NA columns
-names(covid_ons) <- as.matrix(covid_ons[1, ])
+names(covid_ons)[1:5] <- as.matrix(covid_ons[1, ])[1:5]
 covid_ons <- covid_ons[-1, ]
 covid_ons[] <- lapply(covid_ons, function(x) type.convert(as.character(x)))
 covid_ons <- covid_ons[colSums(!is.na(covid_ons)) > 0]

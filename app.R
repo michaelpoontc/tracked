@@ -283,9 +283,9 @@ ui <- dashboardPagePlus(
               )
       ),
       
-      tabItem(tabName = "regional",
-              plotOutput("difference_plot")
-              ),
+      # tabItem(tabName = "regional",
+      #         plotOutput("difference_plot")
+      #         ),
       tabItem(tabName = "info",
               fluidRow(
                 column(6, h1("Data information", style="padding:3px;")),
